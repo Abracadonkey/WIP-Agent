@@ -1,8 +1,14 @@
-from functions.get_files_info import get_files_info 
+from functions.run_python_file import run_python_file 
 
-def test():
-    result1 = get_files_info("calculator", ".") 
-    result2 = get_files_info("calculator", "pkg") 
-    result3 = get_files_info("calculator", "/bin") 
-    result4 = get_files_info("calculator", "../") 
-    return result1, result2, result3, result4
+
+result1 = run_python_file("calculator", "main.py")
+result2 = run_python_file("calculator", "main.py", ["3 + 5"])
+result3 = run_python_file("calculator", "tests.py")
+result4 = run_python_file("calculator", "../main.py")
+result5 = run_python_file("calculator", "nonexistent.py")
+
+
+
+
+
+print(result1, result2, result3, result4, result5)
