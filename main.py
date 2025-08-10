@@ -6,7 +6,7 @@ from google.genai import types # type: ignore
 from dotenv import load_dotenv # type: ignore
 
 from prompts import system_prompt
-from call_function import *
+from call_function import call_function, available_functions
 
 def main():
     load_dotenv()
@@ -38,30 +38,12 @@ def main():
     
 
         
-        
-        
-        
-        
-        
-    MAX_ATTEMPTS = 20 
-
-   
-    for i in range(MAX_ATTEMPTS):
-        try: 
-             
-            response = generate_content(client, messages, verbose)
-            if response.text:
-                print(f"{response.text}") 
-                break
+    agent_loop(generate_content, client, messages, verbose)
 
 
-        except Exception as e: 
-            print(f"Error: {e}") 
-            break 
-
-    else: 
-        print(f"Max iterations ({MAX_ATTEMPTS}) reached.")
-
+        
+        
+    
 
 
 
@@ -86,28 +68,59 @@ def generate_content(client, messages, verbose):
 
     if not response.function_calls:
         return response.text
-
-    for function_call_part in response.function_calls:
-       function_call_result = call_function(function_call_part, verbose) 
-       if not function_call_result.parts[0].function_response.response:
-           raise Exception("Error:Fatal") 
-       if verbose:
+    if response.function_calls:
+        
+        for function_call_part in response.function_calls:
+            function_call_result = call_function(function_call_part, verbose) 
+            if not function_call_result.parts[0].function_response.response:
+                raise Exception("Error:Fatal") 
+            if verbose:
+            
+                    print(f"-> {function_call_result.parts[0].function_response.response}") 
+            response_message = types.Content(
+            role="tool",
+            parts=[
+                types.Part.from_function_response(
+                name=function_call_part.name,
+                        response={"result": function_call_result.parts[0].function_response.response}, 
+                    )
+                ]
+            )
+            messages.append(response_message) 
+        return response_message
+            
+        
+        
+        
+                
+    
+    
+            
        
-            print(f"-> {function_call_result.parts[0].function_response.response}") 
-       
-    messages.append(types.Content(
-    role="tool",
-    parts=[
-        types.Part.from_function_response(
-            name=function_name,
-            response={"result": function_result}, 
-        )
-    ],
-    )
-    )                
-    return messages
+        
+
+        
+               
+    
 
 
+MAX_ATTEMPTS = 20 
+def agent_loop(func_to_call, client, messages, verbose):   
+    
+    for i in range(MAX_ATTEMPTS):
+        try: 
+                
+            func_to_call(client, messages, verbose)
+        
+                  
+
+
+        except Exception as e: 
+            print(f"Error: {e}") 
+            break 
+
+    else: 
+        print(f"Max iterations ({MAX_ATTEMPTS}) reached.")
 
 
 
