@@ -38,7 +38,7 @@ def main():
     
 
         
-    agent_loop(generate_content, client, messages, verbose)
+    agent_loop(client, messages, verbose)
 
 
         
@@ -105,12 +105,18 @@ def generate_content(client, messages, verbose):
 
 
 MAX_ATTEMPTS = 20 
-def agent_loop(func_to_call, client, messages, verbose):   
-    
+def agent_loop(client, messages, verbose):   
     for i in range(MAX_ATTEMPTS):
+        result = generate_content(client, messages, verbose)
         try: 
                 
-            func_to_call(client, messages, verbose)
+            generate_content(client, messages, verbose) 
+            if result.response.text:
+                
+                 
+                print(f'{}') 
+                break
+                
         
                   
 
