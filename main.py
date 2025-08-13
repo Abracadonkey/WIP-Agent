@@ -66,29 +66,31 @@ def generate_content(client, messages, verbose):
         print("Prompt tokens:", response.usage_metadata.prompt_token_count)
         print("Response tokens:", response.usage_metadata.candidates_token_count)
 
-    if not response.function_calls:
-        return response.text
-    if response.function_calls:
+    if not response.candidates[0].content.parts or not response.candidates[0].content.parts[0].function_call:
+        return response.candidates[0].content.parts[0].text 
+    else:
+        function_call = response.candidates[0].content.parts[0].function_call
+        function_call_result = call_function(function_call, verbose) 
+        if not function_call_result.parts[0].function_response.response:
+            raise Exception("Error:Fatal")
+    
+    
+        if verbose:
         
-        for function_call_part in response.function_calls:
-            function_call_result = call_function(function_call_part, verbose) 
-            if not function_call_result.parts[0].function_response.response:
-                raise Exception("Error:Fatal") 
-            if verbose:
-            
-                    print(f"-> {function_call_result.parts[0].function_response.response}") 
-            response_message = types.Content(
+                print(f"-> {function_call_result.parts[0].function_response.response}") 
+        
+        response_message = types.Content(
             role="tool",
             parts=[
                 types.Part.from_function_response(
-                name=function_call_part.name,
-                        response={"result": function_call_result.parts[0].function_response.response}, 
-                    )
-                ]
-            )
-            messages.append(response_message) 
+                    name=function_call.name,
+                    response={"result": function_call_result.parts[0].function_response.response},
+                )
+            ]
+        )
+        messages.append(response_message)
         return response_message
-            
+        
         
         
         
@@ -108,23 +110,24 @@ MAX_ATTEMPTS = 20
 def agent_loop(client, messages, verbose):   
     for i in range(MAX_ATTEMPTS):
         result = generate_content(client, messages, verbose)
-        try: 
-                
+         
+        try:
+                    
             generate_content(client, messages, verbose) 
-            if result.response.text:
+            if isinstance(result, str):
                 
-                 
-                print(f'{}') 
+                print(result) 
                 break
+        
+        except Exception as e:
+            print(f"Error:{e}") 
+            break
                 
         
                   
 
 
-        except Exception as e: 
-            print(f"Error: {e}") 
-            break 
-
+       
     else: 
         print(f"Max iterations ({MAX_ATTEMPTS}) reached.")
 
