@@ -76,7 +76,7 @@ def generate_content(client, messages, verbose):
     messages.append(genai.types.Content(role="tool", parts=[function_call_result]))
     
     if not function_call_result.parts[0].function_response.response:
-        raise Exception("Error:Fatal")
+        raise Exception("Error:Fatal error")
 
 
     if verbose:
