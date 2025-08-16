@@ -68,12 +68,11 @@ def generate_content(client, messages, verbose):
     if not response.candidates[0].content.parts[0].function_call:
         print(response.candidates[0].content.parts[0].text) 
     
-    messages.append(response.candidates[0].content)
+        messages.append(response.candidates[0].content)
     
     
     function_call = response.candidates[0].content.parts[0].function_call
     function_call_result = call_function(function_call, verbose) 
-    messages.append(genai.types.Content(role="tool", parts=[function_call_result]))
     
     if not function_call_result.parts[0].function_response.response:
         raise Exception("Error:Fatal error")
@@ -83,6 +82,7 @@ def generate_content(client, messages, verbose):
     
             print(f"-> {function_call_result.parts[0].function_response.response}") 
     
+    messages.append(genai.types.Content(role="user", parts=[function_call_result.parts[0].function_response.response]))
     
                 
         
