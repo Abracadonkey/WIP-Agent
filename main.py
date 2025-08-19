@@ -67,25 +67,33 @@ def generate_content(client, messages, verbose):
         print("Prompt tokens:", response.usage_metadata.prompt_token_count)
         print("Response tokens:", response.usage_metadata.candidates_token_count)
     for candidates in response.candidates:
+        messages.append(candidates.content) 
 
-        if not response.candidates[0].content.parts[0].function_call:
-            print(response.candidates[0].content.parts[0].text) 
-        
-            messages.append(response.candidates.content.parts)
+       
     
-    
+                
     function_call = response.candidates[0].content.parts[0].function_call
     function_call_result = call_function(function_call, verbose) 
+        
+    
+    
+    
+    if not response.candidates[0].content.parts[0].function_call:
+            print("Agent's Final Response:")
+                
+            print(response.candidates[0].content.parts[0].text) 
+            return response
     
     if not function_call_result.parts[0].function_response.response:
-        raise Exception("Error:Fatal error")
+        raise Exception("Error:Fatal error") 
 
 
     if verbose:
     
             print(f"-> {function_call_result.parts[0].function_response.response}") 
     
-    messages.append(genai.types.Content(role="user", parts=[function_call_result.parts[0].function_response.response]))
+    messages.append(genai.types.Content(role="user", parts=[function_call_result.parts[0]]))
+    return response
     
                 
         
