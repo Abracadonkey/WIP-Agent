@@ -68,32 +68,35 @@ def generate_content(client, messages, verbose):
         print("Response tokens:", response.usage_metadata.candidates_token_count)
     for candidates in response.candidates:
         messages.append(candidates.content) 
+    if response.candidates[0].content.parts[0].function_call:
+        function_call = response.candidates[0].content.parts[0].function_call
+        function_call_result = call_function(function_call, verbose) 
+        if not function_call_result.parts[0].function_response.response:
+            raise Exception("Error:Fatal error") 
+        if verbose:
+        
+                print(f"-> {function_call_result.parts[0].function_response.response}") 
+        messages.append(genai.types.Content(role="user", parts=[function_call_result.parts[0]])) 
+        
 
-       
+
+     
+    else:
+            print("Agent's Final Response:")
+                
+            
+            return response.candidates[0].content.parts[0].text
+            
     
                 
-    function_call = response.candidates[0].content.parts[0].function_call
-    function_call_result = call_function(function_call, verbose) 
         
     
     
     
-    if not response.candidates[0].content.parts[0].function_call:
-            print("Agent's Final Response:")
-                
-            print(response.candidates[0].content.parts[0].text) 
-            return response
+            
     
-    if not function_call_result.parts[0].function_response.response:
-        raise Exception("Error:Fatal error") 
-
-
-    if verbose:
     
-            print(f"-> {function_call_result.parts[0].function_response.response}") 
     
-    messages.append(genai.types.Content(role="user", parts=[function_call_result.parts[0]]))
-    return response
     
                 
         
@@ -103,9 +106,9 @@ def agent_loop(client, messages, verbose):
     for i in range(MAX_ATTEMPTS):
         try:
             result = generate_content(client, messages, verbose)
-          
+            print(result)
             if isinstance(result, str):
-                print(result) 
+                
                 break
         except Exception as e: 
             print(f"Error: {e}") 
