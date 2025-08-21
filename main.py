@@ -111,7 +111,7 @@ def agent_loop(client, messages, verbose):
                 
                 break
         except Exception as e: 
-            print(f"Error: {e}") 
+            print(f"Error: {e}a") 
             break
             
                     
