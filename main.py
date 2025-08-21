@@ -71,12 +71,12 @@ def generate_content(client, messages, verbose):
     if response.candidates[0].content.parts[0].function_call:
         function_call = response.candidates[0].content.parts[0].function_call
         function_call_result = call_function(function_call, verbose) 
+        messages.append(genai.types.Content(role="user", parts=[function_call_result])) 
         if not function_call_result.parts[0].function_response.response:
             raise Exception("Error:Fatal error") 
         if verbose:
         
-                print(f"-> {function_call_result.parts[0].function_response.response}") 
-        messages.append(genai.types.Content(role="user", parts=[function_call_result.parts[0]])) 
+                print(f"-> {function_call_result}") 
         
 
 
@@ -85,7 +85,8 @@ def generate_content(client, messages, verbose):
             print("Agent's Final Response:")
                 
             
-            return response.candidates[0].content.parts[0].text
+            print(response.candidates[0].content.parts[0].text) 
+            
             
     
                 
@@ -106,12 +107,12 @@ def agent_loop(client, messages, verbose):
     for i in range(MAX_ATTEMPTS):
         try:
             result = generate_content(client, messages, verbose)
-            print(result)
+            
             if isinstance(result, str):
                 
                 break
         except Exception as e: 
-            print(f"Error: {e}a") 
+            print(f"Error: {e}") 
             break
             
                     
