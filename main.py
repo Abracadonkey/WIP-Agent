@@ -51,73 +51,79 @@ def main():
 
 
 
-
-def generate_content(client, messages, verbose):
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-001",
-        contents=messages,
-        config=types.GenerateContentConfig(
-            tools=[available_functions], system_instruction=system_prompt
-        ),
-    )
-    
-        
-    
-    if verbose:
-        print("Prompt tokens:", response.usage_metadata.prompt_token_count)
-        print("Response tokens:", response.usage_metadata.candidates_token_count)
-    for candidates in response.candidates:
-        messages.append(candidates.content) 
-    if response.candidates[0].content.parts[0].function_call:
-        function_call = response.candidates[0].content.parts[0].function_call
-        function_call_result = call_function(function_call, verbose) 
-        messages.append(genai.types.Content(role="user", parts=[function_call_result])) 
-        if not function_call_result.parts[0].function_response.response:
-            raise Exception("Error:Fatal error") 
-        if verbose:
-        
-                print(f"-> {function_call_result}") 
-        
-
-
-     
-    else:
-            print("Agent's Final Response:")
-                
-            
-            print(response.candidates[0].content.parts[0].text) 
-            
-            
-    
-                
-        
+MAX_ATTEMPTS = 20
+def agent_loop(client, messages, verbose):
     
     
-    
-            
-    
-    
-    
-    
-                
-        
-        
-MAX_ATTEMPTS = 20 
-def agent_loop(client, messages, verbose):   
     for i in range(MAX_ATTEMPTS):
         try:
-            result = generate_content(client, messages, verbose)
             
-            if isinstance(result, str):
-                
+            response = client.models.generate_content(
+                model="gemini-2.0-flash-001",
+                contents=messages,
+                config=types.GenerateContentConfig(
+                    tools=[available_functions], system_instruction=system_prompt
+                ),
+            )
+    
+            if not response.candidates:
+                print("Agent failed to return a response")
                 break
-        except Exception as e: 
-            print(f"Error: {e}") 
-            break
+            for candidates in response.candidates:
+                
+                messages.append(candidates.content) 
+            if verbose:
+                print(f"{response.candidates[0].content}")
+        
+    
+            if not response.candidates[0].content.parts[0].function_call:
+                print("Agent's Final Response:")
+                print(response.candidates[0].content.parts[0].text) 
+                break
+            function_responses = []  
+            for function_call_part in response.function_calls:
+                function_call_result = call_function(function_call_part, verbose) 
+                if (
+                    not function_call_result.parts
+                    or not function_call_result.parts[0].function_response
+                ):
+                    raise Exception("empty function call result")
+                if verbose:
+                    print(f"->{function_call_result.parts[0].function_response.response}") 
+                function_responses.append(function_call_result.parts[0])
+                messages.append(genai.types.Content(role="user", parts=[function_responses])) 
+                       
+                
             
-                    
-    else: 
-        print(f"Max iterations ({MAX_ATTEMPTS}) reached.")
+
+     
+        except Exception as e:
+            print(f"\nError: {e}") 
+            break
+   
+    else:
+        print(f"\n{MAX_ATTEMPTS} reached without a final response")
+    
+            
+            
+        
+        
+                
+    
+                
+        
+    
+    
+    
+            
+    
+    
+    
+    
+                
+        
+        
+
         
                 
     
