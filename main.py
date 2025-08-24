@@ -102,7 +102,7 @@ def agent_loop(client, messages, verbose):
             break
    
     else:
-        print(f"\n{MAX_ATTEMPTS} reached without a final response")
+        print(f"\n{MAX_ATTEMPTS} reached without a final response.")
     
             
             
