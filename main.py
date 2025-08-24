@@ -76,22 +76,23 @@ def agent_loop(client, messages, verbose):
                 print(f"{response.candidates[0].content}")
         
     
-            if not response.candidates[0].content.parts[0].function_call:
+            if not response.function_calls:
                 print("Agent's Final Response:")
                 print(response.candidates[0].content.parts[0].text) 
                 break
-            function_responses = []  
-            for function_call_part in response.function_calls:
-                function_call_result = call_function(function_call_part, verbose) 
-                if (
-                    not function_call_result.parts
-                    or not function_call_result.parts[0].function_response
-                ):
-                    raise Exception("empty function call result")
-                if verbose:
-                    print(f"->{function_call_result.parts[0].function_response.response}") 
-                function_responses.append(function_call_result.parts[0])
-                messages.append(genai.types.Content(role="user", parts=[function_responses])) 
+            else:
+                function_responses = []  
+                for function_call_part in response.function_calls:
+                    function_call_result = call_function(function_call_part, verbose) 
+                    if (
+                        not function_call_result.parts
+                        or not function_call_result.parts[0].function_response
+                    ):
+                        raise Exception("empty function call result")
+                    if verbose:
+                        print(f"->{function_call_result.parts[0].function_response.response}") 
+                    function_responses.append(function_call_result.parts[0])
+                messages.append(genai.types.Content(role="user", parts=function_responses)) 
                        
                 
             
