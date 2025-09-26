@@ -50,7 +50,7 @@ def main():
     
 
 
-#Note1
+#Note123
 MAX_ATTEMPTS = 20
 def agent_loop(client, messages, verbose):
     
