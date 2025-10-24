@@ -50,7 +50,7 @@ def main():
     
 
 
-#Note12345678910111213-----12321
+#Note12345678910111213-----123212
 def agent_loop(client, messages, verbose):
     
     
